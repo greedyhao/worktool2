@@ -5,7 +5,7 @@
   "identifier": "com.worktool2.app",
   "build": {
     "beforeDevCommand": "pnpm dev",
-    "devUrl": "http://localhost:1420",
+    "devUrl": "http://localhost:49500",
     "beforeBuildCommand": "pnpm build",
     "frontendDist": "../dist"
   },

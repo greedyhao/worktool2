@@ -1,7 +1,7 @@
 import { createRouter, createWebHistory, RouteRecordRaw } from 'vue-router';
 import Home from '../views/Home.vue';
-import ExceptionLog from '../views/App1.vue';
-import App2 from '../views/App2.vue';
+import HardfaultLog from '../views/HardfaultLog.vue';
+import AnalyzeThread from '../views/AnalyzeThread.vue';
 import App3 from '../views/App3.vue';
 
 const routes: Array<RouteRecordRaw> = [
@@ -11,14 +11,14 @@ const routes: Array<RouteRecordRaw> = [
     component: Home,
   },
   {
-    path: '/app1',
-    name: 'ExceptionLog',
-    component: ExceptionLog,
+    path: '/HardfaultLog',
+    name: 'HardfaultLog',
+    component: HardfaultLog,
   },
   {
-    path: '/app2',
-    name: 'App2',
-    component: App2,
+    path: '/AnalyzeThread',
+    name: 'AnalyzeThread',
+    component: AnalyzeThread,
   },
   {
     path: '/app3',

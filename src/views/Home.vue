@@ -6,8 +6,8 @@
         </div>
         <h1>欢迎使用开发辅助工具</h1>
         <div class="grid-container">
-            <router-link to="/app1" class="grid-item">应用 1</router-link>
-            <router-link to="/app2" class="grid-item">应用 2</router-link>
+            <router-link to="/HardfaultLog" class="grid-item">异常信息处理</router-link>
+            <router-link to="/AnalyzeThread" class="grid-item">应用 2</router-link>
             <router-link to="/app3" class="grid-item">应用 3</router-link>
         </div>
     </div>

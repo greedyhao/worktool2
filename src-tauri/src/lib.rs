@@ -1,6 +1,9 @@
 use serde::Serialize;
 use tauri::command;
 
+mod analyze_thread;
+use analyze_thread::generate_plot;
+
 // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
 #[tauri::command]
 fn greet(name: &str) -> String {
@@ -66,9 +69,10 @@ fn process_exception_log(file_path: String) -> Result<CPURegs, String> {
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
+        .plugin(tauri_plugin_fs::init())
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_opener::init())
-        .invoke_handler(tauri::generate_handler![greet, process_exception_log])
+        .invoke_handler(tauri::generate_handler![greet, process_exception_log, generate_plot])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
