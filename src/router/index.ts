@@ -2,7 +2,8 @@ import { createRouter, createWebHistory, RouteRecordRaw } from 'vue-router';
 import Home from '../views/Home.vue';
 import HardfaultLog from '../views/HardfaultLog.vue';
 import AnalyzeThread from '../views/AnalyzeThread.vue';
-import App3 from '../views/App3.vue';
+import HciLog from '../views/HciLog.vue';
+import MemoryTrace from '../views/MemoryTrace.vue';
 
 const routes: Array<RouteRecordRaw> = [
   {
@@ -21,9 +22,14 @@ const routes: Array<RouteRecordRaw> = [
     component: AnalyzeThread,
   },
   {
-    path: '/app3',
-    name: 'App3',
-    component: App3,
+    path: '/HciLog',
+    name: 'HciLog',
+    component: HciLog,
+  },
+  {
+    path: '/MemoryTrace',
+    name: 'MemoryTrace',
+    component: MemoryTrace,
   },
 ];
 

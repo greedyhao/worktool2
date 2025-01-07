@@ -2,21 +2,7 @@
   <div class="exception-log">
     <BackToHome />
     <h1>异常日志处理</h1>
-    <FileDropZone @file-selected="handleFileSelected" />
-    <div class="form-container">
-      <div class="form-group">
-        <label for="file-path">异常日志文件地址：</label>
-        <input
-          id="file-path"
-          v-model="filePath"
-          type="text"
-          placeholder="请输入文件地址"
-          readonly
-        />
-      </div>
-      <button @click="handleProcess">处理</button>
-    </div>
-
+    <FileDropZone @file-selected="handleProcess" />
     <div v-if="cpuRegs" class="result-container">
       <h2>{{ cpuRegs.header }}</h2>
       <div v-for="(row, rowIndex) in registerRows" :key="rowIndex" class="register-row">
@@ -46,7 +32,6 @@ export default defineComponent({
     FileDropZone,
   },
   setup() {
-    const filePath = ref(''); // 文件地址
     const cpuRegs = ref<CPURegs | null>(null); // CPU 寄存器组数据
 
     // 寄存器名称
@@ -71,14 +56,9 @@ export default defineComponent({
       return rows;
     });
 
-    // 处理文件选择
-    const handleFileSelected = (path: string) => {
-      filePath.value = path;
-    };
-
-    // 处理按钮点击事件
-    const handleProcess = async () => {
-      if (!filePath.value) {
+    // 处理文件选择并调用 Rust 后端
+    const handleProcess = async (filePath: string) => {
+      if (!filePath) {
         alert('请选择文件');
         return;
       }
@@ -86,7 +66,7 @@ export default defineComponent({
       try {
         // 调用 Rust 后端处理异常日志
         const result = await invoke<CPURegs>('process_exception_log', {
-          filePath: filePath.value,
+          filePath: filePath,
         });
 
         // 将结果保存到 cpuRegs
@@ -98,10 +78,8 @@ export default defineComponent({
     };
 
     return {
-      filePath,
       cpuRegs,
       registerRows,
-      handleFileSelected,
       handleProcess,
     };
   },
@@ -112,40 +90,6 @@ export default defineComponent({
 .exception-log {
   padding: 20px;
   position: relative;
-}
-
-.form-container {
-  max-width: 400px;
-  margin: 0 auto;
-  text-align: left;
-}
-
-.form-group {
-  margin-bottom: 15px;
-}
-
-label {
-  display: block;
-  margin-bottom: 5px;
-  font-weight: bold;
-}
-
-input {
-  width: 100%;
-  padding: 8px;
-  box-sizing: border-box;
-}
-
-button {
-  padding: 10px 20px;
-  background-color: #4caf50;
-  color: white;
-  border: none;
-  cursor: pointer;
-}
-
-button:hover {
-  background-color: #45a049;
 }
 
 .result-container {

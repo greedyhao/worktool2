@@ -1,6 +1,6 @@
 <template>
     <BackToHome />
-    <h1>App3</h1>
+    <h1>MemoryTrace</h1>
 </template>
 
 <script lang="ts">
@@ -8,7 +8,7 @@ import { defineComponent } from 'vue';
 import BackToHome from '@/components/BackToHome.vue';
 
 export default defineComponent({
-    name: 'App3',
+    name: 'MemoryTrace',
     components: {
         BackToHome, // 注册组件
     },
