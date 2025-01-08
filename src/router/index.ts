@@ -1,6 +1,6 @@
 import { createRouter, createWebHistory, RouteRecordRaw } from 'vue-router';
 import Home from '../views/Home.vue';
-import HardfaultLog from '../views/HardfaultLog.vue';
+import ExceptionLog from '../views/ExceptionLog.vue';
 import AnalyzeThread from '../views/AnalyzeThread.vue';
 import HciLog from '../views/HciLog.vue';
 import MemoryTrace from '../views/MemoryTrace.vue';
@@ -12,9 +12,9 @@ const routes: Array<RouteRecordRaw> = [
     component: Home,
   },
   {
-    path: '/HardfaultLog',
-    name: 'HardfaultLog',
-    component: HardfaultLog,
+    path: '/ExceptionLog',
+    name: 'ExceptionLog',
+    component: ExceptionLog,
   },
   {
     path: '/AnalyzeThread',

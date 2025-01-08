@@ -6,7 +6,7 @@
         </div>
         <h1>欢迎使用开发辅助工具</h1>
         <div class="grid-container">
-            <router-link to="/HardfaultLog" class="grid-item">异常信息处理</router-link>
+            <router-link to="/ExceptionLog" class="grid-item">异常信息处理</router-link>
             <router-link to="/AnalyzeThread" class="grid-item">线程分析</router-link>
             <router-link to="/HciLog" class="grid-item">HCI日志转换</router-link>
             <router-link to="/MemoryTrace" class="grid-item">内存泄漏分析</router-link>

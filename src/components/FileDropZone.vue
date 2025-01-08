@@ -44,12 +44,6 @@ export default defineComponent({
         if (event.payload.type === 'over') {
           // 拖拽到窗口上方时
           isDragOver.value = true;
-          const files = event.payload.paths;
-          if (files && files.length > 0) {
-            dropMessage.value = `释放文件以选择：${files[0]}`; // 显示拖拽中的文件路径
-          } else {
-            dropMessage.value = '释放文件以选择'; // 通用提示信息
-          }
         } else if (event.payload.type === 'drop') {
           // 拖拽完成时
           isDragOver.value = false;
@@ -58,7 +52,7 @@ export default defineComponent({
             filePath.value = files[0]; // 获取文件路径
             emit('file-selected', filePath.value); // 触发事件
           }
-        } else if (event.payload.type === 'cancel') {
+        } else {
           // 拖拽取消时
           isDragOver.value = false;
         }
