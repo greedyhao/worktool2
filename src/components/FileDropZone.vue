@@ -9,6 +9,19 @@
     <div v-if="isDragOver" class="drop-overlay">
       <p>{{ dropMessage }}</p>
     </div>
+
+    <!-- 添加的控件区域 -->
+    <div v-if="showControls" class="controls">
+      <!-- 动态生成复选框 -->
+      <div v-for="(checkbox, index) in checkboxes" :key="index" class="checkbox-container">
+        <label>
+          <input type="checkbox" v-model="checkbox.state" /> {{ checkbox.label }}
+        </label>
+      </div>
+
+      <!-- 提交按钮 -->
+      <button @click="handleButtonClick">提交</button>
+    </div>
   </div>
 </template>
 
@@ -19,8 +32,18 @@ import { getCurrentWebview } from '@tauri-apps/api/webview';
 
 export default defineComponent({
   name: 'FileDropZone',
-  emits: ['file-selected'], // 定义事件
-  setup(_, { emit }) {
+  emits: ['file-selected', 'controls-submitted'], // 定义事件
+  props: {
+    showControls: {
+      type: Boolean,
+      default: false,
+    },
+    checkboxes: {
+      type: Array as () => Array<{ label: string; state: boolean }>,
+      default: () => [],
+    },
+  },
+  setup(props, { emit }) {
     const filePath = ref(''); // 文件路径
     const isDragOver = ref(false); // 是否在拖拽状态
     const dropMessage = ref('释放文件以选择'); // 拖拽时的提示信息
@@ -35,6 +58,18 @@ export default defineComponent({
         filePath.value = selected; // 获取文件路径
         emit('file-selected', filePath.value); // 触发事件
       }
+    };
+
+    // 处理按钮点击
+    const handleButtonClick = () => {
+      const checkboxStates = props.checkboxes.map((checkbox) => ({
+        label: checkbox.label,
+        state: checkbox.state,
+      }));
+      emit('controls-submitted', {
+        filePath: filePath.value,
+        checkboxes: checkboxStates,
+      });
     };
 
     // 监听文件拖放事件
@@ -64,6 +99,7 @@ export default defineComponent({
       isDragOver,
       dropMessage,
       handleClick,
+      handleButtonClick,
     };
   },
 });
@@ -109,5 +145,26 @@ export default defineComponent({
 .drop-overlay p {
   font-size: 1.5rem;
   color: #333;
+}
+
+.controls {
+  margin-top: 20px;
+}
+
+.checkbox-container {
+  margin-bottom: 10px;
+}
+
+button {
+  padding: 10px 20px;
+  background-color: #4caf50;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+button:hover {
+  background-color: #45a049;
 }
 </style>

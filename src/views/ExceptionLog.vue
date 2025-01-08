@@ -2,7 +2,7 @@
   <div class="exception-log">
     <BackToHome />
     <h1>异常日志处理</h1>
-    <FileDropZone @file-selected="handleProcess" />
+    <FileDropZone :showControls="true" @controls-submitted="handleControlsSubmitted" />
     <div v-if="cpuRegs" class="result-container">
       <h2>{{ cpuRegs.header }}</h2>
       <div v-for="(row, rowIndex) in registerRows" :key="rowIndex" class="register-row">
@@ -56,17 +56,16 @@ export default defineComponent({
       return rows;
     });
 
-    // 处理文件选择并调用 Rust 后端
-    const handleProcess = async (filePath: string) => {
-      if (!filePath) {
-        alert('请选择文件');
-        return;
-      }
+    const handleControlsSubmitted = async (data: {
+      filePath: string;
+      checkboxes: Array<{ label: string; state: boolean }>;
+    }) => {
+      // console.log('提交的数据:', data);
 
       try {
         // 调用 Rust 后端处理异常日志
         const result = await invoke<CPURegs>('process_exception_log', {
-          filePath: filePath,
+          filePath: data.filePath,
         });
 
         // 将结果保存到 cpuRegs
@@ -80,7 +79,7 @@ export default defineComponent({
     return {
       cpuRegs,
       registerRows,
-      handleProcess,
+      handleControlsSubmitted,
     };
   },
 });
