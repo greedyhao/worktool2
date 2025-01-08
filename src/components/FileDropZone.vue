@@ -13,14 +13,22 @@
     <!-- 添加的控件区域 -->
     <div v-if="showControls" class="controls">
       <!-- 动态生成复选框 -->
-      <div v-for="(checkbox, index) in checkboxes" :key="index" class="checkbox-container">
+      <div v-for="(checkbox, index) in checkboxes" :key="`checkbox-${index}`" class="checkbox-container">
         <label>
           <input type="checkbox" v-model="checkbox.state" /> {{ checkbox.label }}
         </label>
       </div>
 
-      <!-- 提交按钮 -->
-      <button @click="handleButtonClick">提交</button>
+      <!-- 动态生成按键，横向排列 -->
+      <div class="button-row">
+        <button
+          v-for="(button, index) in buttons"
+          :key="`button-${index}`"
+          @click="handleButtonClick(button)"
+        >
+          {{ button.label }}
+        </button>
+      </div>
     </div>
   </div>
 </template>
@@ -32,7 +40,7 @@ import { getCurrentWebview } from '@tauri-apps/api/webview';
 
 export default defineComponent({
   name: 'FileDropZone',
-  emits: ['file-selected', 'controls-submitted'], // 定义事件
+  emits: ['file-selected', 'button-clicked'], // 定义事件
   props: {
     showControls: {
       type: Boolean,
@@ -40,6 +48,10 @@ export default defineComponent({
     },
     checkboxes: {
       type: Array as () => Array<{ label: string; state: boolean }>,
+      default: () => [],
+    },
+    buttons: {
+      type: Array as () => Array<{ label: string; id: string }>,
       default: () => [],
     },
   },
@@ -60,13 +72,14 @@ export default defineComponent({
       }
     };
 
-    // 处理按钮点击
-    const handleButtonClick = () => {
+    // 处理按键点击
+    const handleButtonClick = (button: { label: string; id: string }) => {
       const checkboxStates = props.checkboxes.map((checkbox) => ({
         label: checkbox.label,
         state: checkbox.state,
       }));
-      emit('controls-submitted', {
+      emit('button-clicked', {
+        buttonId: button.id,
         filePath: filePath.value,
         checkboxes: checkboxStates,
       });
@@ -155,6 +168,11 @@ export default defineComponent({
   margin-bottom: 10px;
 }
 
+.button-row {
+  display: flex;
+  gap: 10px; /* 按键之间的间距 */
+}
+
 button {
   padding: 10px 20px;
   background-color: #4caf50;
@@ -162,6 +180,7 @@ button {
   border: none;
   border-radius: 5px;
   cursor: pointer;
+  flex: 1; /* 按键均匀分布 */
 }
 
 button:hover {

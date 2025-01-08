@@ -2,7 +2,7 @@
     <div class="analyze-thread">
         <BackToHome />
         <h1>线程分析</h1>
-        <FileDropZone @file-selected="handleProcess" />
+        <FileDropZone :showControls="true" :buttons="buttonOptions" @button-clicked="handleButtonClicked" />
         <div class="iframe-container">
             <iframe ref="iframe" :srcdoc="plotHtml" style="width: 100%; height: 100%; border: none;"></iframe>
         </div>
@@ -22,6 +22,12 @@ export default defineComponent({
         FileDropZone,
     },
     setup() {
+        const checkboxOptions = ref([]);
+        const buttonOptions = ref([
+            { label: '预处理', id: 'preprocess' },
+            { label: '提交', id: 'submit' },
+        ]);
+
         const iframe = ref<HTMLIFrameElement | null>(null); // iframe 引用
         const plotHtml = ref(''); // iframe 的内容
 
@@ -49,31 +55,42 @@ export default defineComponent({
             window.removeEventListener('resize', resizeIframe);
         });
 
-        // 处理文件选择并调用 Rust 后端
-        const handleProcess = async (filePath: string) => {
-            if (!filePath) {
-                alert('请选择文件');
-                return;
+        const handleButtonClicked = async (data: {
+            buttonId: string;
+            filePath: string;
+            checkboxes: Array<{ label: string; state: boolean }>;
+        }) => {
+            switch (data.buttonId) {
+                case 'preprocess':
+                    try {
+                        // 调用 Rust 后端处理异常日志
+                        const result = await invoke('analyze_thread_preprocess', {
+                            inputFile: data.filePath,
+                            outputFile: data.filePath + '.out.txt',
+                        });
+
+                        console.log('预处理成功:', result);
+                        // // 处理成功的结果
+                        // if (result) {
+                        //     console.log('预处理成功:', result);
+                        //     alert('预处理成功，结果已保存到文件');
+                        // }
+                    } catch (error) {
+                        console.error('处理异常日志失败:', error);
+                        alert('处理异常日志失败，请检查文件地址是否正确');
+                    }
+                    break;
+                case 'submit':
+                default:
+                    console.log('未知操作:', data);
             }
-
-            // try {
-            //     // 调用 Rust 后端处理异常日志
-            //     const result = await invoke<CPURegs>('process_exception_log', {
-            //         filePath: filePath,
-            //     });
-
-            //     // 将结果保存到 cpuRegs
-            //     cpuRegs.value = result;
-            // } catch (error) {
-            //     console.error('处理异常日志失败:', error);
-            //     alert('处理异常日志失败，请检查文件地址是否正确');
-            // }
         };
 
         return {
+            buttonOptions,
             iframe,
             plotHtml,
-            handleProcess,
+            handleButtonClicked,
         };
     },
 });

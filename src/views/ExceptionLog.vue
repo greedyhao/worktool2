@@ -2,7 +2,7 @@
   <div class="exception-log">
     <BackToHome />
     <h1>异常日志处理</h1>
-    <FileDropZone :showControls="true" @controls-submitted="handleControlsSubmitted" />
+    <FileDropZone :showControls="true" :buttons="buttonOptions" @button-clicked="handleButtonClicked" />
     <div v-if="cpuRegs" class="result-container">
       <h2>{{ cpuRegs.header }}</h2>
       <div v-for="(row, rowIndex) in registerRows" :key="rowIndex" class="register-row">
@@ -32,6 +32,9 @@ export default defineComponent({
     FileDropZone,
   },
   setup() {
+    const buttonOptions = ref([
+      { label: '提交', id: 'submit' },
+    ]);
     const cpuRegs = ref<CPURegs | null>(null); // CPU 寄存器组数据
 
     // 寄存器名称
@@ -56,30 +59,36 @@ export default defineComponent({
       return rows;
     });
 
-    const handleControlsSubmitted = async (data: {
+    const handleButtonClicked = async (data: {
+      buttonId: string;
       filePath: string;
       checkboxes: Array<{ label: string; state: boolean }>;
     }) => {
       // console.log('提交的数据:', data);
+      switch (data.buttonId) {
+        case 'submit':
+          try {
+            // 调用 Rust 后端处理异常日志
+            const result = await invoke<CPURegs>('process_exception_log', {
+              filePath: data.filePath,
+            });
 
-      try {
-        // 调用 Rust 后端处理异常日志
-        const result = await invoke<CPURegs>('process_exception_log', {
-          filePath: data.filePath,
-        });
-
-        // 将结果保存到 cpuRegs
-        cpuRegs.value = result;
-      } catch (error) {
-        console.error('处理异常日志失败:', error);
-        alert('处理异常日志失败，请检查文件地址是否正确');
+            // 将结果保存到 cpuRegs
+            cpuRegs.value = result;
+          } catch (error) {
+            console.error('处理异常日志失败:', error);
+            alert('处理异常日志失败，请检查文件地址是否正确');
+          }
+        default:
+          console.log('未知操作:', data);
       }
     };
 
     return {
+      buttonOptions,
       cpuRegs,
       registerRows,
-      handleControlsSubmitted,
+      handleButtonClicked,
     };
   },
 });
