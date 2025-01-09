@@ -1,6 +1,3 @@
-use plotly::common::Mode;
-use plotly::{Plot, Scatter};
-
 use std::collections::{HashMap, HashSet};
 use std::error::Error;
 use std::fs::File;
@@ -59,11 +56,11 @@ fn process_logic_data(reader: impl BufRead) -> Result<Vec<LogMessage>, Box<dyn E
         }
 
         match char {
-            "NUL" => current_message.push(' '),
+            "NUL" | "(SP)" => current_message.push(' '),
             "LF " => {
                 if !current_message.is_empty() {
                     let message = current_message.trim().to_string();
-                    if message.contains(':') {
+                    if validate_message_content(&message) {
                         if let Some(timestamp) = start_time {
                             messages.push(LogMessage {
                                 timestamp,
@@ -75,7 +72,11 @@ fn process_logic_data(reader: impl BufRead) -> Result<Vec<LogMessage>, Box<dyn E
                 }
                 current_message.clear();
             }
-            c => current_message.push_str(c),
+            c => {
+                if c.len() == 1 {
+                    current_message.push_str(c)
+                }
+            }
         }
     }
 
@@ -91,6 +92,10 @@ fn validate_message_type(message: &str, map: &HashSet<String>) -> bool {
     } else {
         false
     }
+}
+
+fn validate_message_content(content: &str) -> bool {
+    content.chars().filter(|c| *c == ':').count() == 1
 }
 
 fn write_output(messages: &[LogMessage], output_file: &str) -> io::Result<()> {
@@ -120,11 +125,166 @@ pub fn analyze_thread_preprocess(
     let mut types = HashSet::new();
     // 遍历 messages，提取 content 并插入 HashSet
     for message in &messages {
-        types.insert(message.content.clone());
+        if let Some((t, _)) = message.content.split_once(':') {
+            types.insert(t.to_string());
+        }
     }
+
+    if types.len() > 20 {
+        types.retain(|s| {
+            !s.contains(&[
+                '#', '!', '$', '%', '&', '*', '(', ')', '=', '+', '-', '_', '[', ']', '{', '}',
+                ';', ':', '<', '>', '/', '\\', '?', '@', '`', ' ', '~',
+            ]) && !s.starts_with(&['1', '2', '3', '4', '5', '6', '7', '8', '9', '0'])
+                && (s.len() > 0)
+        });
+    }
+
+    let valid_messages: Vec<_> = messages
+        .into_iter()
+        .filter(|msg| validate_message_type(&msg.content, &types))
+        .collect();
     let types = types.into_iter().collect::<Vec<String>>();
 
-    let valid_messages: Vec<_> = messages.into_iter().collect();
     write_output(&valid_messages, output_file).unwrap();
     Ok(types)
+}
+
+use plotly::common::Mode;
+use plotly::layout::{GridPattern, LayoutGrid, RowOrder};
+use plotly::{Layout, Pie, Plot, Scatter};
+
+/// 绘制CPU使用率
+#[derive(Debug)]
+struct ThreadSwitch {
+    timestamp: f64,
+    #[allow(dead_code)]
+    from_thread: String,
+    to_thread: String,
+    #[allow(dead_code)]
+    ra: String,
+}
+
+fn parse_thread_switch_log(filename: &str, choiced: &str) -> io::Result<Vec<ThreadSwitch>> {
+    let file = File::open(filename)?;
+    let reader = io::BufReader::new(file);
+    let re = format!(r"\[([\d.]+)\]{}:(\w+)\s+(\w+)\s+([\da-fA-F]+)", choiced);
+    let pattern = Regex::new(&re).unwrap();
+    let mut switches = Vec::new();
+
+    for line in reader.lines() {
+        let line = line?;
+        if let Some(captures) = pattern.captures(&line) {
+            let timestamp = captures[1].parse::<f64>().unwrap();
+            let from_thread = captures[2].to_string();
+            let to_thread = captures[3].to_string();
+            let ra = captures[4].to_string();
+            switches.push(ThreadSwitch {
+                timestamp,
+                from_thread,
+                to_thread,
+                ra,
+            });
+        }
+    }
+
+    Ok(switches)
+}
+
+fn analyze_cpu_usage(
+    switches: &[ThreadSwitch],
+) -> (HashMap<String, f64>, HashMap<String, Vec<(f64, f64, f64)>>) {
+    let mut thread_times = HashMap::new();
+    let mut thread_intervals = HashMap::new();
+
+    for i in 0..switches.len() - 1 {
+        let current = &switches[i];
+        let next_switch = &switches[i + 1];
+        let duration = next_switch.timestamp - current.timestamp;
+        let thread = &current.to_thread;
+
+        *thread_times.entry(thread.clone()).or_insert(0.0) += duration;
+        thread_intervals
+            .entry(thread.clone())
+            .or_insert_with(Vec::new)
+            .push((current.timestamp, next_switch.timestamp, duration));
+    }
+
+    (thread_times, thread_intervals)
+}
+
+fn plot_cpu_usage(
+    thread_times: &HashMap<String, f64>,
+    thread_intervals: &HashMap<String, Vec<(f64, f64, f64)>>,
+    window_size: f64,
+) -> String {
+    let mut plot = Plot::new();
+
+    // 创建饼图
+    let threads: Vec<String> = thread_times.keys().cloned().collect();
+    let times: Vec<f64> = thread_times.values().cloned().collect();
+
+    let pie = Pie::new(times.clone())
+        .labels(threads.clone())
+        .name("CPU Usage");
+
+    plot.add_trace(pie);
+
+    // 创建折线图
+    let total_time = thread_intervals
+        .values()
+        .flat_map(|intervals| intervals.iter().map(|interval| interval.1))
+        .fold(0.0, |acc, x| if x > acc { x } else { acc });
+
+    let time_points: Vec<f64> = (0..=(total_time / window_size) as usize)
+        .map(|i| i as f64 * window_size)
+        .collect();
+
+    for (thread, intervals) in thread_intervals {
+        let usage: Vec<f64> = time_points
+            .iter()
+            .map(|&t| {
+                intervals
+                    .iter()
+                    .filter(|interval| interval.0 < t + window_size && interval.1 > t)
+                    .map(|interval| {
+                        (interval.1.min(t + window_size) - interval.0.max(t)) / window_size * 100.0
+                    })
+                    .sum()
+            })
+            .collect();
+
+        let trace = Scatter::new(time_points.clone(), usage)
+            .name(thread)
+            .mode(Mode::Lines)
+            .x_axis("x2") // 指定线图使用第二个 x 轴
+            .y_axis("y2"); // 指定线图使用第二个 y 轴;
+        plot.add_trace(trace);
+    }
+
+    let layout = Layout::new().grid(
+        LayoutGrid::new()
+            .rows(2)
+            .columns(1)
+            .pattern(GridPattern::Independent)
+            .row_order(RowOrder::TopToBottom),
+    );
+    plot.set_layout(layout);
+
+    // 返回 HTML 字符串
+    plot.to_inline_html(None)
+}
+
+#[tauri::command]
+pub fn analyze_thread_plot(choiced: &str, input_file: &str) -> Result<String, Box<String>> {
+    let switches = parse_thread_switch_log(input_file, choiced);
+    match switches {
+        Ok(switches) => {
+            let (thread_times, thread_intervals) = analyze_cpu_usage(&switches);
+            return Ok(plot_cpu_usage(&thread_times, &thread_intervals, 0.1));
+        }
+        Err(err) => {
+            return Err(Box::new(err.to_string()));
+        }
+    }
 }

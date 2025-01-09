@@ -79,6 +79,7 @@ export default defineComponent({
             console.error('处理异常日志失败:', error);
             alert('处理异常日志失败，请检查文件地址是否正确');
           }
+          break;
         default:
           console.log('未知操作:', data);
       }

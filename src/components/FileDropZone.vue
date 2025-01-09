@@ -12,12 +12,25 @@
 
     <!-- 添加的控件区域 -->
     <div v-if="showControls" class="controls">
-      <!-- 动态生成复选框 -->
-      <div v-for="(checkbox, index) in checkboxes" :key="`checkbox-${index}`" class="checkbox-container">
-        <label>
-          <input type="checkbox" v-model="checkbox.state" /> {{ checkbox.label }}
-        </label>
+      <!-- 动态生成复选框，横向排列并自动换行 -->
+      <div class="checkbox-container-wrapper" :class="{ collapsed: isCollapsed }">
+        <div class="checkbox-row">
+          <div
+            v-for="(checkbox, index) in checkboxes"
+            :key="`checkbox-${index}`"
+            class="checkbox-container"
+            :class="{ active: checkbox.state }"
+            @click="toggleCheckbox(checkbox)"
+          >
+            {{ checkbox.label }}
+          </div>
+        </div>
       </div>
+
+      <!-- 展开/折叠按钮 -->
+      <button class="toggle-button" @click="toggleCollapse">
+        {{ isCollapsed ? '展开' : '折叠' }}
+      </button>
 
       <!-- 动态生成按键，横向排列 -->
       <div class="button-row">
@@ -59,6 +72,7 @@ export default defineComponent({
     const filePath = ref(''); // 文件路径
     const isDragOver = ref(false); // 是否在拖拽状态
     const dropMessage = ref('释放文件以选择'); // 拖拽时的提示信息
+    const isCollapsed = ref(true); // 是否折叠
 
     // 处理文件选择
     const handleClick = async () => {
@@ -83,6 +97,16 @@ export default defineComponent({
         filePath: filePath.value,
         checkboxes: checkboxStates,
       });
+    };
+
+    // 切换复选框状态
+    const toggleCheckbox = (checkbox: { label: string; state: boolean }) => {
+      checkbox.state = !checkbox.state;
+    };
+
+    // 切换折叠状态
+    const toggleCollapse = () => {
+      isCollapsed.value = !isCollapsed.value;
     };
 
     // 监听文件拖放事件
@@ -111,8 +135,11 @@ export default defineComponent({
       filePath,
       isDragOver,
       dropMessage,
+      isCollapsed,
       handleClick,
       handleButtonClick,
+      toggleCheckbox,
+      toggleCollapse,
     };
   },
 });
@@ -164,10 +191,65 @@ export default defineComponent({
   margin-top: 20px;
 }
 
-.checkbox-container {
-  margin-bottom: 10px;
+/* 复选框容器 */
+.checkbox-container-wrapper {
+  max-height: 150px; /* 3 行的高度 */
+  overflow: hidden;
+  transition: max-height 0.3s ease;
 }
 
+.checkbox-container-wrapper.collapsed {
+  max-height: 150px; /* 折叠时的高度 */
+}
+
+.checkbox-container-wrapper:not(.collapsed) {
+  max-height: 500px; /* 展开时的高度，根据需要调整 */
+}
+
+/* 复选框横向排列并自动换行 */
+.checkbox-row {
+  display: flex;
+  flex-wrap: wrap; /* 允许换行 */
+  gap: 10px; /* 复选框之间的间距 */
+  margin-bottom: 20px;
+}
+
+.checkbox-container {
+  flex: 1 1 auto; /* 允许复选框根据内容宽度调整 */
+  min-width: 150px; /* 每个复选框的最小宽度 */
+  max-width: 200px; /* 每个复选框的最大宽度 */
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  text-align: center;
+  cursor: pointer;
+  transition: background-color 0.3s, border-color 0.3s;
+}
+
+.checkbox-container.active {
+  background-color: #4caf50; /* 选中时的背景色 */
+  color: white; /* 选中时的文字颜色 */
+  border-color: #4caf50; /* 选中时的边框颜色 */
+}
+
+/* 展开/折叠按钮 */
+.toggle-button {
+  display: block;
+  width: 100%;
+  padding: 10px;
+  background-color: #f0f0f0;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  text-align: center;
+  cursor: pointer;
+  margin-bottom: 20px;
+}
+
+.toggle-button:hover {
+  background-color: #ddd;
+}
+
+/* 按键横向排列 */
 .button-row {
   display: flex;
   gap: 10px; /* 按键之间的间距 */
