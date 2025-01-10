@@ -14,7 +14,7 @@
     <div v-if="showControls" class="controls">
       <!-- 动态生成复选框，横向排列并自动换行 -->
       <div class="checkbox-container-wrapper" :class="{ collapsed: isCollapsed }">
-        <div class="checkbox-row">
+        <div class="checkbox-row" ref="checkboxRow">
           <div
             v-for="(checkbox, index) in checkboxes"
             :key="`checkbox-${index}`"
@@ -27,8 +27,12 @@
         </div>
       </div>
 
-      <!-- 展开/折叠按钮 -->
-      <button class="toggle-button" @click="toggleCollapse">
+      <!-- 展开/折叠按钮，仅在行数超过 3 行时显示 -->
+      <button
+        v-if="showToggleButton"
+        class="toggle-button"
+        @click="toggleCollapse"
+      >
         {{ isCollapsed ? '展开' : '折叠' }}
       </button>
 
@@ -47,7 +51,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, onMounted } from 'vue';
+import { defineComponent, ref, onMounted, watch, nextTick } from 'vue';
 import { open } from '@tauri-apps/plugin-dialog';
 import { getCurrentWebview } from '@tauri-apps/api/webview';
 
@@ -73,6 +77,26 @@ export default defineComponent({
     const isDragOver = ref(false); // 是否在拖拽状态
     const dropMessage = ref('释放文件以选择'); // 拖拽时的提示信息
     const isCollapsed = ref(true); // 是否折叠
+    const checkboxRow = ref<HTMLElement | null>(null); // 复选框容器引用
+    const showToggleButton = ref(false); // 是否显示展开/折叠按钮
+
+    // 计算复选框的行数
+    const calculateRowCount = () => {
+      if (checkboxRow.value) {
+        const rowHeight = 50; // 每行的近似高度（根据实际样式调整）
+        const totalHeight = checkboxRow.value.clientHeight;
+        return Math.ceil(totalHeight / rowHeight);
+      }
+      return 0;
+    };
+
+    // 更新是否显示展开/折叠按钮
+    const updateToggleButtonVisibility = () => {
+      nextTick(() => {
+        const rowCount = calculateRowCount();
+        showToggleButton.value = rowCount > 3;
+      });
+    };
 
     // 处理文件选择
     const handleClick = async () => {
@@ -129,13 +153,26 @@ export default defineComponent({
           isDragOver.value = false;
         }
       });
+
+      // 初始化时更新按钮可见性
+      updateToggleButtonVisibility();
     });
+
+    // 监听复选框数量变化
+    watch(
+      () => props.checkboxes.length,
+      () => {
+        updateToggleButtonVisibility();
+      }
+    );
 
     return {
       filePath,
       isDragOver,
       dropMessage,
       isCollapsed,
+      checkboxRow,
+      showToggleButton,
       handleClick,
       handleButtonClick,
       toggleCheckbox,
