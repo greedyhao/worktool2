@@ -1,9 +1,12 @@
 mod analyze_thread;
-use analyze_thread::{analyze_thread_preprocess, analyze_thread_plot};
 use analyze_thread::generate_plot;
+use analyze_thread::{analyze_thread_plot, analyze_thread_preprocess};
 
 mod exception_log;
 use exception_log::process_exception_log;
+
+mod hci_log;
+use hci_log::parse_hci_log;
 
 // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
 #[tauri::command]
@@ -23,6 +26,7 @@ pub fn run() {
             generate_plot,
             analyze_thread_preprocess,
             analyze_thread_plot,
+            parse_hci_log,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
