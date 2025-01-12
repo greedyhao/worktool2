@@ -3,6 +3,7 @@
     <BackToHome />
     <h1>异常日志处理</h1>
     <FileDropZone :showControls="true" :buttons="buttonOptions" @button-clicked="handleButtonClicked" />
+    <HelpButton markdownFile="exception_log" />
     <div v-if="cpuRegs" class="result-container">
       <h2>{{ cpuRegs.header }}</h2>
       <div v-for="(row, rowIndex) in registerRows" :key="rowIndex" class="register-row">
@@ -19,6 +20,7 @@ import { defineComponent, ref, computed } from 'vue';
 import { invoke } from '@tauri-apps/api/core';
 import BackToHome from '@/components/BackToHome.vue';
 import FileDropZone from '@/components/FileDropZone.vue';
+import HelpButton from '@/components/HelpButton.vue';
 
 interface CPURegs {
   regs: string[];
@@ -30,6 +32,7 @@ export default defineComponent({
   components: {
     BackToHome,
     FileDropZone,
+    HelpButton,
   },
   setup() {
     const buttonOptions = ref([
