@@ -2,6 +2,9 @@
     <BackToHome />
     <h1>HciLog</h1>
     <FileDropZone :showControls="true" :buttons="buttonOptions" @button-clicked="handleButtonClicked" />
+    
+    <!-- 使用 HelpButton 组件，传递 Markdown 文件名 -->
+    <HelpButton markdownFile="hci_log" />
 </template>
 
 <script lang="ts">
@@ -9,12 +12,14 @@ import { defineComponent, ref } from 'vue';
 import BackToHome from '@/components/BackToHome.vue';
 import FileDropZone from '@/components/FileDropZone.vue';
 import { invoke } from '@tauri-apps/api/core';
+import HelpButton from '@/components/HelpButton.vue';
 
 export default defineComponent({
     name: 'HciLog',
     components: {
-        BackToHome, // 注册组件
+        BackToHome,
         FileDropZone,
+        HelpButton, // 注册 HelpButton 组件
     },
     setup() {
         const buttonOptions = ref([
@@ -39,7 +44,8 @@ export default defineComponent({
                 default:
                     break;
             }
-        }
+        };
+
         return {
             buttonOptions,
             handleButtonClicked,
@@ -52,7 +58,6 @@ export default defineComponent({
 .app {
     text-align: center;
     padding: 20px;
-    padding-top: 80px;
-    /* 为返回按钮留出空间 */
+    padding-top: 80px; /* 为返回按钮留出空间 */
 }
 </style>
