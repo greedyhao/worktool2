@@ -2,20 +2,31 @@ use std::fs::{self, File};
 use std::io::{self, BufRead, BufWriter, Error, Write};
 use std::time::UNIX_EPOCH;
 
+use regex::Regex;
+use serde::Deserialize;
+
+#[derive(Deserialize)]
+pub struct HciLogOptions {
+    bluetrum_ts: bool, // 蓝讯时间戳
+    skip_chars: u32,   // 跳过字符数
+}
+
 #[tauri::command]
-pub fn parse_hci_log(file_path: &str) -> Result<(), String> {
-    match parse_hci_log_do(file_path) {
+pub fn parse_hci_log(file_path: &str, options: HciLogOptions) -> Result<(), String> {
+    match parse_hci_log_do(file_path, &options) {
         Ok(_) => Ok(()),
         Err(e) => Err(e.to_string()),
     }
 }
 
-fn parse_hci_log_do(file_path: &str) -> io::Result<()> {
+fn parse_hci_log_do(file_path: &str, options: &HciLogOptions) -> io::Result<()> {
     // 打开 HCI Log 文件
     let hci_log_file = File::open(file_path)?;
     let reader = io::BufReader::new(hci_log_file);
 
-    let cfa_file = format!("{}.cfa", file_path);
+    let cfa_file = format!("{}.cfa", remove_extension(file_path));
+    let log_file = format!("{}.log", remove_extension(file_path));
+
     // 创建 BTSnoop 文件
     let mut btsnoop_file = BufWriter::new(File::create(&cfa_file)?);
 
@@ -32,6 +43,24 @@ fn parse_hci_log_do(file_path: &str) -> io::Result<()> {
     // 解析 HCI Log 并写入 BTSnoop 数据包记录
     for line in reader.lines() {
         let line = line?;
+
+        let line = if options.skip_chars > 0 {
+            // 跳过指定字符数
+            line.chars()
+                .skip(options.skip_chars as usize)
+                .collect::<String>()
+        } else {
+            line
+        };
+        let line = if options.bluetrum_ts && line.starts_with('(') {
+            // 删除蓝讯downloader时间戳
+            Regex::new(r"^\(\d{2}:\d{2}:\d{2}\.\d{3}\)")
+                .unwrap()
+                .replace_all(&line, "")
+                .into_owned()
+        } else {
+            line
+        };
 
         // 过滤无效行
         if !is_valid_line(&line) {
@@ -81,6 +110,9 @@ fn parse_hci_log_do(file_path: &str) -> io::Result<()> {
         btsnoop_file.write_all(&timestamp.to_be_bytes())?; // 累计微秒数
         btsnoop_file.write_all(&packet_data)?; // 数据包内容
     }
+
+    btsnoop_file.flush()?;
+    fs::copy(cfa_file, log_file)?;
 
     Ok(())
 }
@@ -162,4 +194,17 @@ fn parse_timestamp(modified: u64, timestamp_str: &str) -> io::Result<u64> {
     let total =
         (modified + total_seconds as u64) * 1000000 + microseconds as u64 + time_betw_0_and_1970_ad;
     Ok(total)
+}
+
+fn remove_extension(path: &str) -> String {
+    if let Some(dot_index) = path.rfind('.') {
+        if let Some(sep_index) = path.rfind('/') {
+            if dot_index > sep_index {
+                return path[..dot_index].to_string();
+            }
+        } else {
+            return path[..dot_index].to_string();
+        }
+    }
+    path.to_string()
 }

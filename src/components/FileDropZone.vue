@@ -36,6 +36,22 @@
         {{ isCollapsed ? '展开' : '折叠' }}
       </button>
 
+      <!-- 动态生成数字输入框 -->
+      <div class="number-input-row">
+        <div
+          v-for="(input, index) in numberInputs"
+          :key="`number-input-${index}`"
+          class="number-input-container"
+        >
+          <label>{{ input.label }}</label>
+          <input
+            type="number"
+            v-model="input.value"
+            @input="handleNumberInputChange(input)"
+          />
+        </div>
+      </div>
+
       <!-- 动态生成按键，横向排列 -->
       <div class="button-row">
         <button
@@ -69,6 +85,10 @@ export default defineComponent({
     },
     buttons: {
       type: Array as () => Array<{ label: string; id: string }>,
+      default: () => [],
+    },
+    numberInputs: {
+      type: Array as () => Array<{ label: string; value: number }>,
       default: () => [],
     },
   },
@@ -116,10 +136,17 @@ export default defineComponent({
         label: checkbox.label,
         state: checkbox.state,
       }));
+
+      const numberInputValues = props.numberInputs.map((input) => ({
+        label: input.label,
+        value: input.value,
+      }));
+
       emit('button-clicked', {
         buttonId: button.id,
         filePath: filePath.value,
         checkboxes: checkboxStates,
+        numberInputs: numberInputValues,
       });
     };
 
@@ -131,6 +158,11 @@ export default defineComponent({
     // 切换折叠状态
     const toggleCollapse = () => {
       isCollapsed.value = !isCollapsed.value;
+    };
+
+    // 处理数字输入框的输入事件
+    const handleNumberInputChange = (input: { label: string; value: number }) => {
+      console.log(`Input ${input.label} changed to ${input.value}`);
     };
 
     // 监听文件拖放事件
@@ -177,6 +209,7 @@ export default defineComponent({
       handleButtonClick,
       toggleCheckbox,
       toggleCollapse,
+      handleNumberInputChange,
     };
   },
 });
@@ -304,5 +337,35 @@ button {
 
 button:hover {
   background-color: #45a049;
+}
+
+/* 数字输入框样式 */
+.number-input-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.number-input-container {
+  flex: 1 1 auto;
+  min-width: 150px;
+  max-width: 200px;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  text-align: center;
+}
+
+.number-input-container label {
+  display: block;
+  margin-bottom: 5px;
+}
+
+.number-input-container input {
+  width: 100%;
+  padding: 5px;
+  border: 1px solid #ccc;
+  border-radius: 3px;
 }
 </style>
