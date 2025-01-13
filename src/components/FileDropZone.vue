@@ -273,7 +273,8 @@ export default defineComponent({
 }
 
 .checkbox-container-wrapper:not(.collapsed) {
-  max-height: 500px; /* 展开时的高度，根据需要调整 */
+  max-height: none; /* 移除高度限制 */
+  overflow: auto; /* 允许滚动 */
 }
 
 /* 复选框横向排列并自动换行 */

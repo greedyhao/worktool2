@@ -80,14 +80,20 @@ export default defineComponent({
                     break;
                 case 'submit':
                     try {
+                        // 统计被勾选的选项数量
+                        const selectedCount = data.checkboxes.filter(checkbox => checkbox.state).length;
+                        if (selectedCount > 1) {
+                            alert('只能选择一个选项进行提交');
+                            return; // 停止后续操作
+                        }
                         const result = await invoke<string>('analyze_thread_plot', {
-                            choiced: "tswi",
+                            choiced: data.checkboxes.filter(checkbox => checkbox.state)[0].label,
                             inputFile: data.filePath + '.out.txt',
                         });
                         plotHtml.value = `<script src="/js/plotly-2.12.1.min.js"><\/script>` + result;
                     } catch (error) {
                         console.error('提交失败:', error);
-                        alert('提交失败，请检查文件地址是否正确');
+                        alert(`提交失败：${error}`);
                     }
                     break;
                 default:

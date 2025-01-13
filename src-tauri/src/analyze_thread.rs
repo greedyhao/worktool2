@@ -144,7 +144,8 @@ pub fn analyze_thread_preprocess(
         .into_iter()
         .filter(|msg| validate_message_type(&msg.content, &types))
         .collect();
-    let types = types.into_iter().collect::<Vec<String>>();
+    let mut types = types.into_iter().collect::<Vec<String>>();
+    types.sort();
 
     write_output(&valid_messages, output_file).unwrap();
     Ok(types)
@@ -174,6 +175,9 @@ fn parse_thread_switch_log(filename: &str, choiced: &str) -> io::Result<Vec<Thre
 
     for line in reader.lines() {
         let line = line?;
+        if line.matches(' ').count() != 2 {
+            continue;
+        }
         if let Some(captures) = pattern.captures(&line) {
             let timestamp = captures[1].parse::<f64>().unwrap();
             let from_thread = captures[2].to_string();
@@ -187,7 +191,12 @@ fn parse_thread_switch_log(filename: &str, choiced: &str) -> io::Result<Vec<Thre
             });
         }
     }
-
+    if switches.len() == 0 {
+        return Err(io::Error::new(
+            io::ErrorKind::Other,
+            format!("No thread switch found for type {}", choiced),
+        ));
+    }
     Ok(switches)
 }
 
