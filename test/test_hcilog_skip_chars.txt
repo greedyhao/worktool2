@@ -1,0 +1,7 @@
+xxxxxxxxx xx [00:00:02.739] EVT <= 12 08 00 83 85 d9 43 be 28 01 
+xxxxxxxxx xx [00:00:02.740] CMD => 1b 04 02 ff ff 
+xxxxxxxxx xx [00:00:02.744] EVT <= 0f 04 02 05 1b 04 
+xxxxxxxxx xx 
+xxxxxxxxx xx [00:00:02.746] EVT <= 03 0b 00 80 00 83 85 d9 43 be 28 01 00 
+xxxxxxxxx xx 
+xxxxxxxxx xx [00:00:02.750] CMD => 09 08 02 80 00 

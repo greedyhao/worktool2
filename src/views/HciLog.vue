@@ -4,8 +4,7 @@
     <FileDropZone :showControls="true" :buttons="buttonOptions" :checkboxes="checkboxOptions"
         :numberInputs="numberInputs" @button-clicked="handleButtonClicked" />
 
-    <!-- 使用 HelpButton 组件，传递 Markdown 文件名 -->
-    <HelpButton markdownFile="hci_log" />
+    <HelpButton />
 </template>
 
 <script lang="ts">

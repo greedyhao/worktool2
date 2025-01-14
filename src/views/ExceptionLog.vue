@@ -3,7 +3,7 @@
     <BackToHome />
     <h1>异常日志处理</h1>
     <FileDropZone :showControls="true" :buttons="buttonOptions" @button-clicked="handleButtonClicked" />
-    <HelpButton markdownFile="exception_log" />
+    <HelpButton />
     <div v-if="cpuRegs" class="result-container">
       <h2>{{ cpuRegs.header }}</h2>
       <div v-for="(row, rowIndex) in registerRows" :key="rowIndex" class="register-row">

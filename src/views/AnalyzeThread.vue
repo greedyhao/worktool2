@@ -8,7 +8,7 @@
             <iframe ref="iframe" :srcdoc="plotHtml" style="width: 100%; height: 100%; border: none;"></iframe>
         </div>
 
-        <HelpButton markdownFile="analyze_thread" />
+        <HelpButton />
     </div>
 </template>
 
