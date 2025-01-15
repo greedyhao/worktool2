@@ -9,10 +9,11 @@
         </div>
         <h1>欢迎使用开发辅助工具</h1>
         <div class="grid-container">
-            <router-link to="/ExceptionLog" class="grid-item">异常信息处理</router-link>
-            <router-link to="/AnalyzeThread" class="grid-item">线程分析</router-link>
-            <router-link to="/HciLog" class="grid-item">HCI日志转换</router-link>
-            <router-link to="/MemoryTrace" class="grid-item">内存泄漏分析</router-link>
+            <router-link v-if="isDesktop" to="/ExceptionLog" class="grid-item">异常信息处理</router-link>
+            <router-link v-if="isDesktop" to="/AnalyzeThread" class="grid-item">线程分析</router-link>
+            <router-link v-if="isDesktop" to="/HciLog" class="grid-item">HCI日志转换</router-link>
+            <router-link v-if="isDesktop" to="/MemoryTrace" class="grid-item">内存泄漏分析</router-link>
+            <router-link to="/WebTool" class="grid-item">Web工具</router-link>
         </div>
     </div>
 </template>
@@ -21,6 +22,7 @@
 import { defineComponent } from 'vue';
 import { check } from '@tauri-apps/plugin-updater';
 import { relaunch } from '@tauri-apps/plugin-process';
+import { invoke } from '@tauri-apps/api/core';
 
 export default defineComponent({
     name: 'Home',
@@ -30,10 +32,55 @@ export default defineComponent({
             isDebug: __BUILD_MODE__ === 'development', // 是否是 debug 模式
             buildTime: __BUILD_TIME__, // 编译时间
             hasNewVersion: false, // 是否有新版本
+            isDesktop: false,
         };
     },
     methods: {
         async checkForUpdates() {
+            if (this.isDesktop) {
+                try {
+                    const update = await check();
+                    if (update) {
+                        this.hasNewVersion = true;
+                        console.log(
+                            `发现新版本 ${update.version}，发布日期：${update.date}，更新内容：${update.body}`
+                        );
+
+                        // 用户确认后，开始下载并安装更新
+                        let downloaded = 0;
+                        let contentLength = 0;
+
+                        await update.downloadAndInstall((event) => {
+                            switch (event.event) {
+                                case 'Started':
+                                    contentLength = event.data.contentLength ?? 0;
+                                    console.log(`开始下载，总大小：${event.data.contentLength} 字节`);
+                                    break;
+                                case 'Progress':
+                                    downloaded += event.data.chunkLength;
+                                    console.log(`已下载 ${downloaded} 字节，总大小：${contentLength}`);
+                                    break;
+                                case 'Finished':
+                                    console.log('下载完成');
+                                    break;
+                            }
+                        });
+
+                        console.log('更新已安装');
+                        await relaunch(); // 重启应用
+                    } else {
+                        alert('当前已是最新版本。');
+                    }
+                } catch (error) {
+                    console.error('检查更新失败:', error);
+                    alert('检查更新失败，请稍后重试。');
+                }
+            }
+        },
+    },
+    async mounted() {
+        // 进入页面时自动检查更新
+        if (this.isDesktop) {
             try {
                 const update = await check();
                 if (update) {
@@ -41,51 +88,13 @@ export default defineComponent({
                     console.log(
                         `发现新版本 ${update.version}，发布日期：${update.date}，更新内容：${update.body}`
                     );
-
-                    // 用户确认后，开始下载并安装更新
-                    let downloaded = 0;
-                    let contentLength = 0;
-
-                    await update.downloadAndInstall((event) => {
-                        switch (event.event) {
-                            case 'Started':
-                                contentLength = event.data.contentLength ?? 0;
-                                console.log(`开始下载，总大小：${event.data.contentLength} 字节`);
-                                break;
-                            case 'Progress':
-                                downloaded += event.data.chunkLength;
-                                console.log(`已下载 ${downloaded} 字节，总大小：${contentLength}`);
-                                break;
-                            case 'Finished':
-                                console.log('下载完成');
-                                break;
-                        }
-                    });
-
-                    console.log('更新已安装');
-                    await relaunch(); // 重启应用
-                } else {
-                    alert('当前已是最新版本。');
                 }
             } catch (error) {
                 console.error('检查更新失败:', error);
-                alert('检查更新失败，请稍后重试。');
             }
-        },
-    },
-    async mounted() {
-        // 进入页面时自动检查更新
-        try {
-            const update = await check();
-            if (update) {
-                this.hasNewVersion = true;
-                console.log(
-                    `发现新版本 ${update.version}，发布日期：${update.date}，更新内容：${update.body}`
-                );
-            }
-        } catch (error) {
-            console.error('检查更新失败:', error);
         }
+        const platform = <string>await invoke('get_platform');
+        this.isDesktop = ['windows', 'macos', 'linux'].includes(platform);
     },
 });
 </script>

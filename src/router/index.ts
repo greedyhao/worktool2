@@ -4,6 +4,7 @@ import ExceptionLog from '../views/ExceptionLog.vue';
 import AnalyzeThread from '../views/AnalyzeThread.vue';
 import HciLog from '../views/HciLog.vue';
 import MemoryTrace from '../views/MemoryTrace.vue';
+import WebTool from '../views/WebTool.vue';
 
 const routes: Array<RouteRecordRaw> = [
   {
@@ -31,6 +32,11 @@ const routes: Array<RouteRecordRaw> = [
     name: 'MemoryTrace',
     component: MemoryTrace,
   },
+  {
+    path: '/WebTool',
+    name: 'WebTool',
+    component: WebTool,
+  }
 ];
 
 const router = createRouter({
