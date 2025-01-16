@@ -4,7 +4,7 @@ use std::io::{self, Write, Read};
 
 const BUFFER_SIZE: usize = 1024;
 
-fn webtool_main() {
+fn net_tool_main() {
     // let matches = Command::new("Network Performance Tester")
     //     .version("1.0")
     //     .author("Your Name <your.email@example.com>")

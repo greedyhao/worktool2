@@ -15,7 +15,7 @@ use exception_log::process_exception_log;
 #[cfg(any(target_os = "windows", target_os = "linux", target_os = "macos"))]
 use hci_log::parse_hci_log;
 
-// mod webtool;
+// mod net_tool;
 
 #[tauri::command]
 fn get_platform() -> String {

@@ -1,6 +1,6 @@
 <template>
     <BackToHome />
-    <h1>WebTool</h1>
+    <h1>NetTool</h1>
 </template>
 
 <script lang="ts">
@@ -8,7 +8,7 @@ import { defineComponent } from 'vue';
 import BackToHome from '@/components/BackToHome.vue';
 
 export default defineComponent({
-    name: 'WebTool',
+    name: 'NetTool',
     components: {
         BackToHome, // 注册组件
     },
