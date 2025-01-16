@@ -14,6 +14,7 @@
             <router-link v-if="isDesktop" to="/HciLog" class="grid-item">HCI日志转换</router-link>
             <router-link v-if="isDesktop" to="/MemoryTrace" class="grid-item">内存泄漏分析</router-link>
             <router-link to="/NetTool" class="grid-item">Web工具</router-link>
+            <router-link to="/Settings" class="grid-item">设置</router-link>
         </div>
     </div>
 </template>

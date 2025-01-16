@@ -5,6 +5,7 @@ import AnalyzeThread from '../views/AnalyzeThread.vue';
 import HciLog from '../views/HciLog.vue';
 import MemoryTrace from '../views/MemoryTrace.vue';
 import NetTool from '../views/NetTool.vue';
+import Settings from '@/views/Settings.vue';
 
 const routes: Array<RouteRecordRaw> = [
   {
@@ -36,6 +37,11 @@ const routes: Array<RouteRecordRaw> = [
     path: '/NetTool',
     name: 'NetTool',
     component: NetTool,
+  },
+  {
+    path: '/Settings',
+    name: 'Settings',
+    component: Settings,
   }
 ];
 

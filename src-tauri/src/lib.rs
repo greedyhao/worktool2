@@ -32,12 +32,15 @@ fn get_platform() -> String {
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
+    let build = tauri::Builder::default()
+        .plugin(tauri_plugin_store::Builder::new().build())
+        .plugin(tauri_plugin_fs::init())
+        .plugin(tauri_plugin_persisted_scope::init());
     #[cfg(any(target_os = "windows", target_os = "linux", target_os = "macos"))]
     {
-        tauri::Builder::default()
+        build
             .plugin(tauri_plugin_process::init())
             .plugin(tauri_plugin_updater::Builder::new().build())
-            .plugin(tauri_plugin_fs::init())
             .plugin(tauri_plugin_dialog::init())
             .plugin(tauri_plugin_opener::init())
             .invoke_handler(tauri::generate_handler![
@@ -53,7 +56,7 @@ pub fn run() {
     }
     #[cfg(not(any(target_os = "windows", target_os = "linux", target_os = "macos")))]
     {
-        tauri::Builder::default()
+        build
             .invoke_handler(tauri::generate_handler![get_platform,])
             .run(tauri::generate_context!())
             .expect("error while running tauri application");
