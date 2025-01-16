@@ -22,7 +22,7 @@ pub fn parse_hci_log(file_path: &str, options: HciLogOptions) -> Result<(), Stri
 fn parse_hci_log_do(file_path: &str, options: &HciLogOptions) -> io::Result<()> {
     // 打开 HCI Log 文件
     let hci_log_file = File::open(file_path)?;
-    let reader = io::BufReader::new(hci_log_file);
+    let mut reader = io::BufReader::new(hci_log_file);
 
     let cfa_file = format!("{}.cfa", remove_extension(file_path));
     let log_file = format!("{}.log", remove_extension(file_path));
@@ -41,8 +41,13 @@ fn parse_hci_log_do(file_path: &str, options: &HciLogOptions) -> io::Result<()> 
     let modified_time = modified_time.duration_since(UNIX_EPOCH).unwrap().as_secs();
 
     // 解析 HCI Log 并写入 BTSnoop 数据包记录
-    for line in reader.lines() {
-        let line = line?;
+    let mut buffer = Vec::new();
+    while reader.read_until(b'\n', &mut buffer)? > 0 {
+        // 尝试将字节数据转换为 UTF-8 字符串
+        let line = String::from_utf8_lossy(&buffer).into_owned();
+
+        // 清空缓冲区以便读取下一行
+        buffer.clear();
 
         let line = if options.skip_chars > 0 {
             // 跳过指定字符数
