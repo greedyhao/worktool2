@@ -22,7 +22,7 @@ export default defineComponent({
     },
     setup() {
         const autoUpdate = ref(false);
-        const sourceCodeUrl = 'https://github.com/your-username/your-repo'; // 替换为你的项目源码地址
+        const sourceCodeUrl = 'https://github.com/greedyhao/worktool2'; // 替换为你的项目源码地址
 
         // 加载保存的设置
         onMounted(async () => {

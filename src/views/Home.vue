@@ -24,6 +24,7 @@ import { defineComponent } from 'vue';
 import { check } from '@tauri-apps/plugin-updater';
 import { relaunch } from '@tauri-apps/plugin-process';
 import { invoke } from '@tauri-apps/api/core';
+import { load } from '@tauri-apps/plugin-store';
 
 export default defineComponent({
     name: 'Home',
@@ -34,6 +35,8 @@ export default defineComponent({
             buildTime: __BUILD_TIME__, // 编译时间
             hasNewVersion: false, // 是否有新版本
             isDesktop: false,
+            autoUpdate: true, // 默认自动更新
+            updateLog: '', // 更新日志
         };
     },
     methods: {
@@ -68,6 +71,7 @@ export default defineComponent({
                         });
 
                         console.log('更新已安装');
+                        this.updateLog = `版本: ${update.version}\n发布日期: ${update.date}\n更新内容: ${update.body}`;
                         await relaunch(); // 重启应用
                     } else {
                         alert('当前已是最新版本。');
@@ -78,10 +82,17 @@ export default defineComponent({
                 }
             }
         },
+        async loadAutoUpdateSetting() {
+            const store = await load('store.json');
+            const val = await store.get<{ value: boolean }>('autoUpdate');
+            this.autoUpdate = val?.value ?? true;
+        },
     },
     async mounted() {
+        await this.loadAutoUpdateSetting();
+
         // 进入页面时自动检查更新
-        if (this.isDesktop) {
+        if (this.isDesktop && this.autoUpdate) {
             try {
                 const update = await check();
                 if (update) {
@@ -89,13 +100,24 @@ export default defineComponent({
                     console.log(
                         `发现新版本 ${update.version}，发布日期：${update.date}，更新内容：${update.body}`
                     );
+
+                    // 自动下载并安装更新
+                    await update.downloadAndInstall();
+                    this.updateLog = `版本: ${update.version}\n发布日期: ${update.date}\n更新内容: ${update.body}`;
+                    await relaunch();
                 }
             } catch (error) {
                 console.error('检查更新失败:', error);
             }
         }
+
         const platform = <string>await invoke('get_platform');
         this.isDesktop = ['windows', 'macos', 'linux'].includes(platform);
+
+        // 显示更新日志
+        if (this.updateLog) {
+            alert(`更新日志:\n${this.updateLog}`);
+        }
     },
 });
 </script>
