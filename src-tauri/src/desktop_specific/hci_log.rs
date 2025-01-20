@@ -1,9 +1,11 @@
 use std::fs::{self, File};
-use std::io::{self, BufRead, BufWriter, Error, Write};
+use std::io::{self, BufWriter, Write};
 use std::time::UNIX_EPOCH;
 
 use regex::Regex;
 use serde::Deserialize;
+
+use crate::utils::process_ascii_lines_from_file;
 
 #[derive(Deserialize)]
 pub struct HciLogOptions {
@@ -20,14 +22,9 @@ pub fn parse_hci_log(file_path: &str, options: HciLogOptions) -> Result<(), Stri
 }
 
 fn parse_hci_log_do(file_path: &str, options: &HciLogOptions) -> io::Result<()> {
-    // 打开 HCI Log 文件
-    let hci_log_file = File::open(file_path)?;
-    let mut reader = io::BufReader::new(hci_log_file);
-
+    // 创建 BTSnoop 文件
     let cfa_file = format!("{}.cfa", remove_extension(file_path));
     let log_file = format!("{}.log", remove_extension(file_path));
-
-    // 创建 BTSnoop 文件
     let mut btsnoop_file = BufWriter::new(File::create(&cfa_file)?);
 
     // 写入 BTSnoop 文件头
@@ -40,25 +37,19 @@ fn parse_hci_log_do(file_path: &str, options: &HciLogOptions) -> io::Result<()> 
     let modified_time = metadata.modified()?;
     let modified_time = modified_time.duration_since(UNIX_EPOCH).unwrap().as_secs();
 
-    // 解析 HCI Log 并写入 BTSnoop 数据包记录
-    let mut buffer = Vec::new();
-    while reader.read_until(b'\n', &mut buffer)? > 0 {
-        // 尝试将字节数据转换为 UTF-8 字符串
-        let line = String::from_utf8_lossy(&buffer).into_owned();
-
-        // 清空缓冲区以便读取下一行
-        buffer.clear();
-
+    // 逐行处理文件内容
+    process_ascii_lines_from_file(file_path, |line| {
+        // 跳过指定字符数
         let line = if options.skip_chars > 0 {
-            // 跳过指定字符数
             line.chars()
                 .skip(options.skip_chars as usize)
                 .collect::<String>()
         } else {
             line
         };
+
+        // 删除蓝讯时间戳（如果启用）
         let line = if options.bluetrum_ts && line.starts_with('(') {
-            // 删除蓝讯downloader时间戳
             Regex::new(r"^\(\d{2}:\d{2}:\d{2}\.\d{3}\)")
                 .unwrap()
                 .replace_all(&line, "")
@@ -69,7 +60,7 @@ fn parse_hci_log_do(file_path: &str, options: &HciLogOptions) -> io::Result<()> 
 
         // 过滤无效行
         if !is_valid_line(&line) {
-            continue;
+            return false;
         }
 
         // 解析行内容
@@ -77,7 +68,13 @@ fn parse_hci_log_do(file_path: &str, options: &HciLogOptions) -> io::Result<()> 
 
         // 解析时间戳
         let timestamp_str = parts[0]; // 例如 "[00:00:02.740]"
-        let timestamp = parse_timestamp(modified_time, timestamp_str)?;
+        let timestamp = match parse_timestamp(modified_time, timestamp_str) {
+            Ok(t) => t,
+            Err(e) => {
+                eprintln!("Failed to parse timestamp: {}", e);
+                return false;
+            }
+        };
 
         let packet_type = parts[1]; // 包类型 (CMD, EVT, ACL)
         let direction = parts[2]; // 方向 (=>, <=)
@@ -88,10 +85,10 @@ fn parse_hci_log_do(file_path: &str, options: &HciLogOptions) -> io::Result<()> 
 
         // 添加 HCI UART 头
         let h4_header = match packet_type {
-            "CMD" => 0x01, // 命令
-            "ACL" => 0x02, // ACL 数据
-            "EVT" => 0x04, // 事件
-            _ => continue, // 忽略未知类型
+            "CMD" => 0x01,     // 命令
+            "ACL" => 0x02,     // ACL 数据
+            "EVT" => 0x04,     // 事件
+            _ => return false, // 忽略未知类型
         };
 
         let mut packet_data = Vec::new();
@@ -104,18 +101,39 @@ fn parse_hci_log_do(file_path: &str, options: &HciLogOptions) -> io::Result<()> 
             ("EVT", "<=") => 0x03, // 接收事件 (bit1=1, bit0=1)
             ("ACL", "=>") => 0x00, // 发送 ACL 数据 (bit1=0, bit0=0)
             ("ACL", "<=") => 0x01, // 接收 ACL 数据 (bit1=0, bit0=1)
-            _ => return Err(Error::other("Unknown packet type or direction")), // 忽略未知类型或方向
+            _ => return false,     // 忽略未知类型或方向
         };
 
         // 写入 BTSnoop 数据包记录
-        btsnoop_file.write_all(&(packet_data.len() as u32).to_be_bytes())?; // 原始长度
-        btsnoop_file.write_all(&(packet_data.len() as u32).to_be_bytes())?; // 包含长度
-        btsnoop_file.write_all(&flags.to_be_bytes())?; // 标志
-        btsnoop_file.write_all(&0_u32.to_be_bytes())?;
-        btsnoop_file.write_all(&timestamp.to_be_bytes())?; // 累计微秒数
-        btsnoop_file.write_all(&packet_data)?; // 数据包内容
-    }
+        if let Err(e) = btsnoop_file.write_all(&(packet_data.len() as u32).to_be_bytes()) {
+            eprintln!("Failed to write packet length: {}", e);
+            return false;
+        }
+        if let Err(e) = btsnoop_file.write_all(&(packet_data.len() as u32).to_be_bytes()) {
+            eprintln!("Failed to write included length: {}", e);
+            return false;
+        }
+        if let Err(e) = btsnoop_file.write_all(&flags.to_be_bytes()) {
+            eprintln!("Failed to write flags: {}", e);
+            return false;
+        }
+        if let Err(e) = btsnoop_file.write_all(&0_u32.to_be_bytes()) {
+            eprintln!("Failed to write padding: {}", e);
+            return false;
+        }
+        if let Err(e) = btsnoop_file.write_all(&timestamp.to_be_bytes()) {
+            eprintln!("Failed to write timestamp: {}", e);
+            return false;
+        }
+        if let Err(e) = btsnoop_file.write_all(&packet_data) {
+            eprintln!("Failed to write packet data: {}", e);
+            return false;
+        }
 
+        true
+    })?;
+
+    // 刷新并复制文件
     btsnoop_file.flush()?;
     fs::copy(cfa_file, log_file)?;
 
@@ -192,9 +210,7 @@ fn parse_timestamp(modified: u64, timestamp_str: &str) -> io::Result<u64> {
     // 计算总秒数和微秒数
     let total_seconds = hours * 3600 + minutes * 60 + seconds;
 
-    // let time_betw_0_and_2000_ad = 0x00E03AB44A676000;
-    // let total = (modified + total_seconds as u64) * 1000000 + microseconds as u64 - 0x35D013B37E000
-    //     + time_betw_0_and_2000_ad;
+    // 计算总时间戳
     let time_betw_0_and_1970_ad = 0x00DCDDB30F2F8000;
     let total =
         (modified + total_seconds as u64) * 1000000 + microseconds as u64 + time_betw_0_and_1970_ad;

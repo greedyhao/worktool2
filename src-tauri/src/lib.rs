@@ -1,3 +1,5 @@
+mod utils;
+
 #[cfg(any(target_os = "windows", target_os = "linux", target_os = "macos"))]
 mod desktop_specific {
     pub mod analyze_thread;
