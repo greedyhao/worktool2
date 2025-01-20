@@ -5481,7 +5481,7 @@ dependencies = [
 
 [[package]]
 name = "worktool2"
-version = "0.1.5"
+version = "0.1.6"
 dependencies = [
  "csv",
  "encoding_rs",
