@@ -38,7 +38,7 @@ pub fn detect_encoding(file_path: &str) -> io::Result<FileEncoding> {
 pub fn process_ascii_lines_from_file<F>(file_path: &str, mut process_line: F) -> io::Result<()>
 where
     F: FnMut(String) -> bool,
-{   
+{
     let mut file = File::open(file_path)?;
 
     let mut buf = Vec::new();
@@ -46,21 +46,21 @@ where
 
     let encoding = detect_encoding(file_path)?;
     let (decoded_str, _, _) = match encoding {
-        FileEncoding::UTF16BE => {
-            encoding_rs::Encoding::for_label(b"utf-16be").unwrap().decode(&buf)
-        },
-        FileEncoding::UTF16LE => {
-            encoding_rs::Encoding::for_label(b"utf-16le").unwrap().decode(&buf)
-        },
-        FileEncoding::UTF32BE => {
-            encoding_rs::Encoding::for_label(b"utf-32be").unwrap().decode(&buf)
-        },
-        FileEncoding::UTF32LE => {
-            encoding_rs::Encoding::for_label(b"utf-32le").unwrap().decode(&buf)
-        },
-        _ => {
-            encoding_rs::Encoding::for_label(b"utf-8").unwrap().decode(&buf)
-        }
+        FileEncoding::UTF16BE => encoding_rs::Encoding::for_label(b"utf-16be")
+            .unwrap()
+            .decode(&buf),
+        FileEncoding::UTF16LE => encoding_rs::Encoding::for_label(b"utf-16le")
+            .unwrap()
+            .decode(&buf),
+        FileEncoding::UTF32BE => encoding_rs::Encoding::for_label(b"utf-32be")
+            .unwrap()
+            .decode(&buf),
+        FileEncoding::UTF32LE => encoding_rs::Encoding::for_label(b"utf-32le")
+            .unwrap()
+            .decode(&buf),
+        _ => encoding_rs::Encoding::for_label(b"utf-8")
+            .unwrap()
+            .decode(&buf),
     };
 
     for line in decoded_str.lines() {

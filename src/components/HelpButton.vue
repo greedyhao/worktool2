@@ -5,16 +5,17 @@
 
 <script lang="ts">
 import { defineComponent } from 'vue';
+import { open } from '@tauri-apps/plugin-shell';
 
 export default defineComponent({
     name: 'HelpButton',
     setup() {
         // 固定的帮助链接
-        const helpUrl = 'https://gitee.com/haozhu1997/worktool2/blob/main/doc/help.md'; // 你可以替换为实际的链接
+        const helpUrl = 'https://gitee.com/haozhu1997/worktool2/blob/main/doc/help.md';
 
-        // 跳转到固定链接的方法
-        const redirectToHelp = () => {
-            window.open(helpUrl, '_blank'); // 在新标签页中打开链接
+        // 使用 Tauri 的安全方式打开链接
+        const redirectToHelp = async () => {
+            await open(helpUrl); // 在新标签页中打开链接
         };
 
         return {

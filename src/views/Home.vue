@@ -7,6 +7,7 @@
                 <span v-if="hasNewVersion" class="new-badge">New</span>
             </button>
             <p v-if="isDebug">编译时间: {{ buildTime }}</p>
+            <a href="#" class="changelog-link" @click.prevent="openChangelog">查看完整更新日志</a>
         </div>
         <h1>欢迎使用开发辅助工具</h1>
         <div class="grid-container">
@@ -26,6 +27,7 @@ import { check, Update } from '@tauri-apps/plugin-updater';
 import { relaunch } from '@tauri-apps/plugin-process';
 import { invoke } from '@tauri-apps/api/core';
 import { load } from '@tauri-apps/plugin-store';
+import { open } from '@tauri-apps/plugin-shell';
 
 export default defineComponent({
     name: 'Home',
@@ -114,6 +116,10 @@ export default defineComponent({
             const val = await store.get<{ value: boolean }>('autoUpdate');
             this.autoUpdate = val?.value ?? true;
         },
+        
+        async openChangelog() {
+            await open('https://gitee.com/haozhu1997/worktool2/blob/main/doc/changelog.md');
+        }
     },
     async mounted() {
         await this.loadAutoUpdateSetting();
@@ -201,5 +207,20 @@ export default defineComponent({
     transition: width 0.3s ease;
     z-index: 0;
     /* 保持在底层 */
+}
+
+.changelog-link {
+    display: block;
+    margin-top: 8px;
+    color: #666;
+    font-size: 14px;
+    text-decoration: none;
+    cursor: pointer;
+    transition: color 0.2s;
+}
+
+.changelog-link:hover {
+    color: #007bff;
+    text-decoration: underline;
 }
 </style>

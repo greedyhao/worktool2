@@ -20,7 +20,7 @@ pub fn process_exception_log(file_path: &str) -> Result<CPURegs, String> {
 
     let mut index = 0;
     let mut state = 0; // 1: epc, 2: wdt
-    let ret =process_ascii_lines_from_file(file_path, |line| {
+    let ret = process_ascii_lines_from_file(file_path, |line| {
         // println!("line: {}, state:{}", line, state);
         match state {
             1 => {
