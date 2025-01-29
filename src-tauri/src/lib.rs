@@ -17,7 +17,10 @@ use exception_log::process_exception_log;
 #[cfg(any(target_os = "windows", target_os = "linux", target_os = "macos"))]
 use hci_log::parse_hci_log;
 
-// mod net_tool;
+mod net_tool;
+use net_tool::{nettool_init, nettool_start_test, nettool_stop_test};
+
+use tauri::Manager;
 
 #[tauri::command]
 fn get_platform() -> String {
@@ -53,14 +56,28 @@ pub fn run() {
                 analyze_thread_preprocess,
                 analyze_thread_plot,
                 parse_hci_log,
+                nettool_start_test,
+                nettool_stop_test
             ])
+            .setup(|app| {
+                app.manage(nettool_init());
+                Ok(())
+            })
             .run(tauri::generate_context!())
             .expect("error while running tauri application");
     }
     #[cfg(not(any(target_os = "windows", target_os = "linux", target_os = "macos")))]
     {
         build
-            .invoke_handler(tauri::generate_handler![get_platform,])
+            .invoke_handler(tauri::generate_handler![
+                get_platform,
+                nettool_start_test,
+                nettool_stop_test
+            ])
+            .setup(|app| {
+                app.manage(nettool_init());
+                Ok(())
+            })
             .run(tauri::generate_context!())
             .expect("error while running tauri application");
     }
