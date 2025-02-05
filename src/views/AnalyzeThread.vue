@@ -7,8 +7,6 @@
         <div class="iframe-container">
             <iframe ref="iframe" :srcdoc="plotHtml" style="width: 100%; height: 100%; border: none;"></iframe>
         </div>
-
-        <HelpButton />
     </div>
 </template>
 
@@ -17,14 +15,12 @@ import { defineComponent, ref, onMounted, onUnmounted } from 'vue';
 import BackToHome from '@/components/BackToHome.vue';
 import { invoke } from '@tauri-apps/api/core';
 import FileDropZone from '@/components/FileDropZone.vue';
-import HelpButton from '@/components/HelpButton.vue';
 
 export default defineComponent({
     name: 'AnalyzeThread',
     components: {
         BackToHome,
         FileDropZone,
-        HelpButton,
     },
     setup() {
         const checkboxOptions = ref<Array<{ label: string; state: boolean }>>([]);

@@ -2,7 +2,7 @@
 name = "worktool2"
 version = "0.2.1"
 description = "A Tauri App"
-authors = ["you"]
+authors = ["greedyhao"]
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html

@@ -18,6 +18,8 @@
             <router-link to="/NetTool" class="grid-item">网络工具</router-link>
             <router-link to="/Settings" class="grid-item">设置</router-link>
         </div>
+        
+        <HelpButton />
     </div>
 </template>
 
@@ -28,9 +30,13 @@ import { relaunch } from '@tauri-apps/plugin-process';
 import { invoke } from '@tauri-apps/api/core';
 import { load } from '@tauri-apps/plugin-store';
 import { open } from '@tauri-apps/plugin-shell';
+import HelpButton from '@/components/HelpButton.vue';
 
 export default defineComponent({
     name: 'Home',
+    components: {
+        HelpButton,
+    },
     data() {
         return {
             version: __APP_VERSION__,

@@ -4,7 +4,6 @@
     <FileDropZone :showControls="true" :buttons="buttonOptions" :checkboxes="checkboxOptions"
         :numberInputs="numberInputs" @button-clicked="handleButtonClicked" />
 
-    <HelpButton />
 </template>
 
 <script lang="ts">
@@ -12,7 +11,6 @@ import { defineComponent, ref } from 'vue';
 import BackToHome from '@/components/BackToHome.vue';
 import FileDropZone from '@/components/FileDropZone.vue';
 import { invoke } from '@tauri-apps/api/core';
-import HelpButton from '@/components/HelpButton.vue';
 
 interface HciLogOptions {
     bluetrum_ts: boolean;
@@ -24,7 +22,6 @@ export default defineComponent({
     components: {
         BackToHome,
         FileDropZone,
-        HelpButton, // 注册 HelpButton 组件
     },
     setup() {
         const buttonOptions = ref([
