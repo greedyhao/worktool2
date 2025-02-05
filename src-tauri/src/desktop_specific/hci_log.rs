@@ -60,7 +60,7 @@ fn parse_hci_log_do(file_path: &str, options: &HciLogOptions) -> io::Result<()> 
 
         // 过滤无效行
         if !is_valid_line(&line) {
-            return false;
+            return true;
         }
 
         // 解析行内容
