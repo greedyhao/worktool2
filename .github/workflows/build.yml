@@ -23,16 +23,21 @@ jobs:
           sudo apt-get install -y libwebkit2gtk-4.1-dev libglib2.0-dev patchelf desktop-file-utils libgtk-3-0 libappindicator3-1 libfuse2
           export NO_STRIP=true
 
-      - name: Checkout code
-        uses: actions/checkout@v4
-
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: 23
 
       - name: Install pnpm
-        run: corepack enable pnpm
+        run: |
+          echo "Before: corepack version => $(corepack --version || echo 'not installed')"
+          npm install -g corepack@latest
+          echo "After : corepack version => $(corepack --version)"
+          corepack enable
+          pnpm --version
+
+      - name: Checkout code
+        uses: actions/checkout@v4
 
       - name: Install dependencies
         run: pnpm install
