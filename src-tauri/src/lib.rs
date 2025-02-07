@@ -1,3 +1,4 @@
+#[cfg(any(target_os = "windows", target_os = "linux", target_os = "macos"))]
 mod utils;
 
 #[cfg(any(target_os = "windows", target_os = "linux", target_os = "macos"))]
