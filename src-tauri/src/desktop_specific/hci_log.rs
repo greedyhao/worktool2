@@ -24,7 +24,7 @@ pub fn parse_hci_log(file_path: &str, options: HciLogOptions) -> Result<(), Stri
 fn parse_hci_log_do(file_path: &str, options: &HciLogOptions) -> io::Result<()> {
     // 创建 BTSnoop 文件
     let cfa_file = format!("{}.cfa", remove_extension(file_path));
-    let log_file = format!("{}.log", remove_extension(file_path));
+    // let log_file = format!("{}.log", remove_extension(file_path));
     let mut btsnoop_file = BufWriter::new(File::create(&cfa_file)?);
 
     // 写入 BTSnoop 文件头
@@ -135,7 +135,7 @@ fn parse_hci_log_do(file_path: &str, options: &HciLogOptions) -> io::Result<()> 
 
     // 刷新并复制文件
     btsnoop_file.flush()?;
-    fs::copy(cfa_file, log_file)?;
+    // fs::copy(cfa_file, log_file)?;
 
     Ok(())
 }
