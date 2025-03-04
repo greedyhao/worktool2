@@ -213,7 +213,7 @@ fn parse_timestamp(modified: u64, timestamp_str: &str) -> io::Result<u64> {
     // 计算总时间戳
     let time_betw_0_and_1970_ad = 0x00DCDDB30F2F8000;
     let total =
-        (modified + total_seconds as u64) * 1000000 + microseconds as u64 + time_betw_0_and_1970_ad;
+        (modified + total_seconds as u64) * 1000000 + (microseconds * 1000) as u64 + time_betw_0_and_1970_ad;
     Ok(total)
 }
 
