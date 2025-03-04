@@ -30,6 +30,8 @@ test\test_analyze_thread.txt
 
 ## HciLog 帮助信息
 
+![](assets/help_hcilog.gif)
+
 1. 拖放文件到页面中。
 2. 点击“提交”按钮以处理文件。
 3. 处理完成后，您将看到结果。
