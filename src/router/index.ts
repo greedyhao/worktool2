@@ -6,6 +6,7 @@ import HciLog from '../views/HciLog.vue';
 import MemoryTrace from '../views/MemoryTrace.vue';
 import NetTool from '../views/NetTool.vue';
 import Settings from '../views/Settings.vue';
+import BinaryConverter from '@/views/BinaryConverter.vue';
 
 const routes: Array<RouteRecordRaw> = [
   {
@@ -42,6 +43,11 @@ const routes: Array<RouteRecordRaw> = [
     path: '/Settings',
     name: 'Settings',
     component: Settings,
+  },
+  {
+    path: '/BinaryConverter',
+    name: 'BinaryConverter',
+    component: BinaryConverter,
   }
 ];
 

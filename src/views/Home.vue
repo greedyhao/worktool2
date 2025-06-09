@@ -14,6 +14,7 @@
             <router-link v-if="isDesktop" to="/ExceptionLog" class="grid-item">异常信息处理</router-link>
             <router-link v-if="isDesktop" to="/AnalyzeThread" class="grid-item">线程分析</router-link>
             <router-link v-if="isDesktop" to="/HciLog" class="grid-item">HCI日志转换</router-link>
+            <router-link v-if="isDesktop" to="/BinaryConverter" class="grid-item">二进制转换</router-link>
             <router-link v-if="isDesktop" to="/MemoryTrace" class="grid-item">内存泄漏分析</router-link>
             <router-link to="/NetTool" class="grid-item">网络工具</router-link>
             <router-link to="/Settings" class="grid-item">设置</router-link>
