@@ -36,6 +36,10 @@ test\test_analyze_thread.txt
 2. 点击“提交”按钮以处理文件。
 3. 处理完成后，您将看到结果。
 
+## 二进制转换帮助信息
+
+![](assets/help_binary.gif)
+
 ## 测试数据
 - test\test_hcilog_bluetrum_ts.txt
 - test\test_hcilog_skip_chars.txt
