@@ -406,7 +406,7 @@ const isBitSelected = (index: number): boolean => {
 
 // 初始化
 onMounted(() => {
-    inputValues.value.dec = 255
+    inputValues.value.dec = '255'
     updateValue('255', 10)
 })
 </script>
