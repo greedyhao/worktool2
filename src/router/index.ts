@@ -7,6 +7,7 @@ import MemoryTrace from '../views/MemoryTrace.vue';
 import NetTool from '../views/NetTool.vue';
 import Settings from '../views/Settings.vue';
 import BinaryConverter from '@/views/BinaryConverter.vue';
+import AudioConverter from '@/views/AudioConverter.vue';
 
 const routes: Array<RouteRecordRaw> = [
   {
@@ -48,6 +49,11 @@ const routes: Array<RouteRecordRaw> = [
     path: '/BinaryConverter',
     name: 'BinaryConverter',
     component: BinaryConverter,
+  },
+  {
+    path: '/AudioConverter',
+    name: 'AudioConverter',
+    component: AudioConverter,
   }
 ];
 

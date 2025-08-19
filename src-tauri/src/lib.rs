@@ -6,6 +6,8 @@ mod desktop_specific {
     pub mod analyze_thread;
     pub mod exception_log;
     pub mod hci_log;
+    pub mod audio_converter;
+    mod audio_decoder;
 }
 
 #[cfg(any(target_os = "windows", target_os = "linux", target_os = "macos"))]
@@ -17,7 +19,10 @@ use analyze_thread::{analyze_thread_plot, analyze_thread_preprocess, generate_pl
 use exception_log::process_exception_log;
 #[cfg(any(target_os = "windows", target_os = "linux", target_os = "macos"))]
 use hci_log::parse_hci_log;
+// #[cfg(any(target_os = "windows", target_os = "linux", target_os = "macos"))]
+// use audio_converter::convert_audio;
 
+mod wav_decoder;
 mod net_tool;
 use net_tool::{nettool_init, nettool_start_test, nettool_stop_test};
 
@@ -58,7 +63,8 @@ pub fn run() {
                 analyze_thread_plot,
                 parse_hci_log,
                 nettool_start_test,
-                nettool_stop_test
+                nettool_stop_test,
+                // convert_audio
             ])
             .setup(|app| {
                 app.manage(nettool_init());
