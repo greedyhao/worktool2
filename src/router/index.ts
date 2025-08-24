@@ -4,7 +4,7 @@ import ExceptionLog from '../views/ExceptionLog.vue';
 import AnalyzeThread from '../views/AnalyzeThread.vue';
 import HciLog from '../views/HciLog.vue';
 import MemoryTrace from '../views/MemoryTrace.vue';
-import NetTool from '../views/NetTool.vue';
+import NetworkSpeedTest from '../views/NetworkSpeedTest.vue';
 import Settings from '../views/Settings.vue';
 import BinaryConverter from '@/views/BinaryConverter.vue';
 import AudioConverter from '@/views/AudioConverter.vue';
@@ -36,9 +36,9 @@ const routes: Array<RouteRecordRaw> = [
     component: MemoryTrace,
   },
   {
-    path: '/NetTool',
-    name: 'NetTool',
-    component: NetTool,
+    path: '/NetworkSpeedTest',
+    name: 'NetworkSpeedTest',
+    component: NetworkSpeedTest,
   },
   {
     path: '/Settings',
