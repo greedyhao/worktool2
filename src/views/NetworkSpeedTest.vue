@@ -20,7 +20,7 @@
             <label>测试模式:</label>
             <select v-model="config.mode">
               <option value="UploadOnly">仅测试设备上行速度</option>
-              <option value="DownloadOnly">仅测试设备下行速度</option>
+              <!-- <option value="DownloadOnly">仅测试设备下行速度</option> -->
             </select>
           </div>
           <div class="form-group">
